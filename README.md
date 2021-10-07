@@ -9,19 +9,26 @@ $ npm start
 
 ## 리덕스 사용법
 
+### 리덕스
+
 - 라이브러리 다운로드
 
 ```
 // 리덕스 라이브러리 다운로드
 // 리덕스 개발툴 적용
+// 리덕스 스토리지
 $ npm install redux react-redux
 $ npm install redux-devtools-extension
+$ npm install redux-persist
 ```
 
 - 리덕스 App에 적용하기
 
 ```js
+import React from "react";
+import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
+import App from "App";
 import store from "store";
 
 ReactDOM.render(
@@ -173,4 +180,53 @@ export default function Components() {
     dispatch(todoInsert({ payload }));
   };
 }
+```
+
+### 리덕스 스토리지 (redux-persist)
+
+- App에 persist 적용하기
+
+```js
+// src/index.js
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import App from "App";
+import { store, persistor } from "store";
+
+ReactDOM.render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <App />
+      </PersistGate>
+    </Provider>
+  </React.StrictMode>,
+  document.getElementById("root")
+);
+```
+
+- store 에 persist 적용하기
+
+```js
+import { createStore } from "redux";
+import { persistReducer, persistStore } from "redux-persist";
+import storage from "redux-persist/lib/storage";
+import { composeWithDevTools } from "redux-devtools-extension";
+import rootReducer from "store/reducers";
+
+const persistConfig = {
+  key: "root",
+  // localStorage에 저장합니다.
+  storage: storage,
+  // 여러개의 reducer 중에 todo reducer만 localstorage에 저장합니다.
+  whitelist: ["todo"],
+  // blacklist -> 그것만 제외합니다
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+export const store = createStore(persistedReducer, composeWithDevTools());
+export const persistor = persistStore(store);
 ```
