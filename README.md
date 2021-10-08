@@ -1,4 +1,4 @@
-# React Todo Template
+# React Todo Redux Exam
 
 ## Get start
 
@@ -229,4 +229,111 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = createStore(persistedReducer, composeWithDevTools());
 export const persistor = persistStore(store);
+```
+
+### 리덕스 툴킷
+
+- 라이브러리 다운로드
+
+```
+// 리덕스 라이브러리 다운로드
+$ npm install @reduxjs/toolkit react-redux
+```
+
+- App 에 적용하기
+
+```js
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
+import App from "App";
+import store from "app/store";
+
+ReactDOM.render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </React.StrictMode>,
+  document.getElementById("root")
+);
+```
+
+- app/store 파일 configureStore 적용하기
+
+```js
+// app/store.js
+import { configureStore } from "@reduxjs/toolkit";
+import todoSlice from "features/todo/todoSlice";
+
+export const store = configureStore({
+  reducer: {
+    todo: todoSlice,
+  },
+});
+```
+
+- features 폴더에 Slice 생성하기
+
+```js
+// features/todo/todoSlice.js
+import { createSlice } from "@reduxjs/toolkit";
+
+const INITIAL_STATE = {
+  todos: [{ id: 1, text: "첫번째", done: false }],
+};
+
+export const slice = createSlice({
+  name: "todo",
+  initialState: INITIAL_STATE,
+  reducers: {
+    todoInsert: (state, action) => {
+      const insertId =
+        Math.max(0, ...state.todos.map((todo) => Number(todo.id))) + 1;
+      const insertText = action.payload;
+      state.todos.push({ id: insertId, text: insertText, done: false });
+    },
+    todoRemove: (state, action) => {
+      const deleteId = action.payload;
+      const index = state.todos.findIndex((todo) => todo.id === deleteId);
+      state.todos.splice(index, 1);
+    },
+    todoUpdate: (state, action) => {
+      const { id: updateId, text: updateText } = action.payload;
+      const index = state.todos.findIndex((todo) => todo.id === updateId);
+      state.todos[index].text = updateText;
+    },
+    todoToggle: (state, action) => {
+      const toggleId = action.payload;
+      const index = state.todos.findIndex((todo) => todo.id === toggleId);
+      state.todos[index].done = !state.todos[index].done;
+    },
+  },
+});
+
+export const { todoInsert, todoRemove, todoUpdate, todoToggle } = slice.actions;
+
+export const selectTodo = (state) => state.todo;
+export const selectTodos = (state) => state.todo.todos;
+
+export default slice.reducer;
+```
+
+- 컴포넌트에서 사용하기
+
+```js
+import { useSelector, useDispatch } from "react-redux";
+import { todoInsert } from "./todoSlice";
+import { selectTodo, selectTodos } from "./todoSlice";
+
+export default function Components() {
+  1. const { todos } = useSelector((state) => state.todo);
+  2. const { todos } = useSelector(selectTodo);
+  3. const todos = useSelector(selectTodos);
+  const dispatch = useDispatch();
+
+  const handleDispatch = () => {
+    dispatch(todoInsert({ payload }));
+  };
+}
 ```
