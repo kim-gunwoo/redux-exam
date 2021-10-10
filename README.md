@@ -184,6 +184,8 @@ export default function Components() {
 
 ### 리덕스 스토리지 (redux-persist)
 
+### 리덕스
+
 - App에 persist 적용하기
 
 ```js
@@ -228,6 +230,77 @@ const persistConfig = {
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = createStore(persistedReducer, composeWithDevTools());
+export const persistor = persistStore(store);
+```
+
+### 리덕스 툴킷
+
+- App에 persist 적용하기
+
+```js
+// src/index.js
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import App from "App";
+import { store, persistor } from "app/store";
+
+ReactDOM.render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <App />
+      </PersistGate>
+    </Provider>
+  </React.StrictMode>,
+  document.getElementById("root")
+);
+```
+
+- store 에 persist 적용하기
+
+```js
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+
+import { persistReducer, persistStore } from "redux-persist";
+import {
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
+import storage from "redux-persist/lib/storage";
+
+import todoSlice from "features/todo/todoSlice";
+
+const persistConfig = {
+  key: "root",
+  // localStorage에 저장합니다.
+  storage: storage,
+  // 여러개의 reducer 중에 todo reducer만 localstorage에 저장합니다.
+  whitelist: ["todo"],
+  // blacklist -> 그것만 제외합니다
+};
+
+const rootReducer = combineReducers({ todo: todoSlice });
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+export const store = configureStore({
+  reducer: persistedReducer,
+  1. middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }),
+  2. middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+});
 export const persistor = persistStore(store);
 ```
 
